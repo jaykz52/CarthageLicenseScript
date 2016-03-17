@@ -35,7 +35,7 @@ struct CartfileEntry: CustomStringConvertible {
         return ["Source/License.txt", "License.md", "LICENSE.md", "LICENSE", "License.txt"].map { "https://github.com/\(self.name)/raw/\(self.version)/\($0)" }
     }
 
-    func fetchLicense(outputDir: String) -> String {
+    func fetchLicense() -> String {
         var license = ""
         let urls = licenseURLStrings.map({ URL(string: $0)! })
         print("Fetching licenses for \(name) ...")
@@ -67,19 +67,19 @@ struct CartfileEntry: CustomStringConvertible {
 var c = 0;
 if CommandLine.arguments.count == 3 {
     let resolvedCartfile = CommandLine.arguments[1]
-    let outputDirectory = CommandLine.arguments[2]
+    let outputFile = CommandLine.arguments[2]
     var error: NSError?
     do {
         let content = try loadResolvedCartfile(file: resolvedCartfile)
         let entries = parseResolvedCartfile(contents: content)
-        let licenses = entries.map { ["title": $0.projectName, "text": $0.fetchLicense(outputDir: outputDirectory)] }
-        let fileName = (outputDirectory as NSString).appendingPathComponent("Licenses.plist")
-        (licenses as NSArray).write(toFile: fileName, atomically: true)
+        let licenses = entries.map { ["Title": $0.projectName, "FooterText": $0.fetchLicense()] }
+        let fileName = outputFile
+        (["PreferenceSpecifiers": licenses] as NSDictionary).write(toFile: fileName, atomically: true)
         print("Super awesome! Your licenses are at \(fileName) 🍻")
     } catch {
         print(error)
     }
 } else {
-    print("USAGE: ./fetch_licenses Cartfile.resolved output_directory/")
+    print("USAGE: ./fetch_licenses Cartfile.resolved output_file")
 }
 
